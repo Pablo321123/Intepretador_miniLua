@@ -9,6 +9,7 @@ import interpreter.command.BlocksCommand;
 import interpreter.command.Command;
 import interpreter.command.PrintCommand;
 import interpreter.command.WhileCommand;
+import interpreter.command.ForCommand;
 import interpreter.expr.ConstExpr;
 import interpreter.expr.Expr;
 import interpreter.expr.SetExpr;
@@ -153,10 +154,52 @@ public class SyntaticAnalysis {
 
     // <repeat> ::= repeat <code> until <expr>
     private void procRepeat() {
+        eat(TokenType.REPEAT);
+        procCode();
+        eat(TokenType.UNTIL);
+        procExpr();
     }
 
     // <for> ::= for <name> (('=' <expr> ',' <expr> [',' <expr>]) | ([',' <name>] in <expr>)) do <code> end
-    private void procFor() {
+    private ForCommand procFor() {
+        eat(TokenType.FOR);
+        int line = lex.getLine();
+        ArrayList<Expr> exprs = new ArrayList<Expr>();
+        ArrayList<Variable> names = new ArrayList<Variable>();
+
+        Variable var = procName();
+        names.add(var);
+        if (current.type == TokenType.ASSIGN) {
+            eat(TokenType.ASSIGN);
+            Expr start = procExpr();
+            exprs.add(start);
+            eat(TokenType.COLON);
+            Expr end = procExpr();
+            exprs.add(end);
+            if (current.type == TokenType.COLON) {
+                eat(TokenType.COLON);
+                Expr step = procExpr();
+                exprs.add(step);
+                eat(TokenType.DO);
+                Command cmd = procCode();
+                eat(TokenType.END);
+                ForCommand fc = new ForCommand(line, names, exprs, cmd);
+                return fc;
+            }
+        }
+        if(current.type == TokenType.COLON) {
+            eat(TokenType.COLON);
+            Variable var2 = procName();
+            names.add(var2);
+            eat(TokenType.IN);
+            Expr expr = procExpr();
+            exprs.add(expr);
+        }
+        eat(TokenType.DO);
+        Command cmd = procCode();
+        eat(TokenType.END);
+        ForCommand fc = new ForCommand(line, names, exprs, cmd);
+        return fc;
     }
 
     // <print> ::= print '(' [ <expr> ] ')'
@@ -227,7 +270,13 @@ public class SyntaticAnalysis {
     // <rel> ::= <concat> [ ('<' | '>' | '<=' | '>=' | '~=' | '==') <concat> ]
     private Expr procRel() {
         Expr expr = procConcat();
-        // FIXME: Implement me!
+        if (current.type == TokenType.LOWER_THAN ||
+                current.type == TokenType.GREATER_THAN ||
+                current.type == TokenType.LOWER_EQUAL ||
+                current.type == TokenType.GREATER_EQUAL ||
+                current.type == TokenType.NOT_EQUAL ||
+                current.type == TokenType.EQUAL)
+            advance();
 
         return expr;
     }
