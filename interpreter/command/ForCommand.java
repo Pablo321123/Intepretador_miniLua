@@ -1,7 +1,6 @@
 package interpreter.command;
 
-
-import java.util.ArrayList;
+import java.util.Vector;
 
 import interpreter.expr.Expr;
 import interpreter.expr.Variable;
@@ -12,11 +11,11 @@ import interpreter.value.Value;
 
 public class ForCommand extends Command {
     private Variable var;
-    private ArrayList<Expr> list;
-    private ArrayList<Variable> names;
+    private Vector<Variable> names;
+    private Vector<Expr> list;
     private Command cmds;
 
-    public ForCommand(int line, ArrayList<Variable> var, ArrayList<Expr> expr, Command cmds){
+    public ForCommand(int line, Vector<Variable> var, Vector<Expr> expr, Command cmds){
         super(line);
         this.names = var;
         this.list = expr;

@@ -164,8 +164,8 @@ public class SyntaticAnalysis {
     private ForCommand procFor() {
         eat(TokenType.FOR);
         int line = lex.getLine();
-        ArrayList<Expr> exprs = new ArrayList<Expr>();
-        ArrayList<Variable> names = new ArrayList<Variable>();
+        Vector<Expr> exprs = new Vector<Expr>();
+        Vector<Variable> names = new Vector<Variable>();
 
         Variable var = procName();
         names.add(var);
@@ -173,11 +173,11 @@ public class SyntaticAnalysis {
             eat(TokenType.ASSIGN);
             Expr start = procExpr();
             exprs.add(start);
-            eat(TokenType.COLON);
+            advance();
             Expr end = procExpr();
             exprs.add(end);
             if (current.type == TokenType.COLON) {
-                eat(TokenType.COLON);
+                advance();
                 Expr step = procExpr();
                 exprs.add(step);
                 eat(TokenType.DO);
@@ -188,7 +188,7 @@ public class SyntaticAnalysis {
             }
         }
         if(current.type == TokenType.COLON) {
-            eat(TokenType.COLON);
+            advance();
             Variable var2 = procName();
             names.add(var2);
             eat(TokenType.IN);
