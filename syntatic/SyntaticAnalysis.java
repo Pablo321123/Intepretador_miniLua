@@ -37,19 +37,19 @@ public class SyntaticAnalysis {
     public Command start() {
         BlocksCommand cmds = procCode();
         eat(TokenType.END_OF_FILE);
-        
+
         return cmds;
     }
 
     private void advance() {
         // System.out.println("Advanced (\"" + current.token + "\", " +
-        //     current.type + ")");
+        // current.type + ")");
         current = lex.nextToken();
     }
 
     private void eat(TokenType type) {
-        // System.out.println("Expected (..., " + type + "), found (\"" + 
-        //     current.token + "\", " + current.type + ")");
+        // System.out.println("Expected (..., " + type + "), found (\"" +
+        // current.token + "\", " + current.type + ")");
         if (type == current.type) {
             current = lex.nextToken();
         } else {
@@ -115,11 +115,12 @@ public class SyntaticAnalysis {
 
         if (current.type == TokenType.SEMI_COLON)
             advance();
-        
+
         return cmd;
     }
 
-    // <if> ::= if <expr> then <code> { elseif <expr> then <code> } [ else <code> ] end
+    // <if> ::= if <expr> then <code> { elseif <expr> then <code> } [ else <code> ]
+    // end
     private void procIf() {
         eat(TokenType.IF);
         procExpr();
@@ -160,7 +161,8 @@ public class SyntaticAnalysis {
         procExpr();
     }
 
-    // <for> ::= for <name> (('=' <expr> ',' <expr> [',' <expr>]) | ([',' <name>] in <expr>)) do <code> end
+    // <for> ::= for <name> (('=' <expr> ',' <expr> [',' <expr>]) | ([',' <name>] in
+    // <expr>)) do <code> end
     private ForCommand procFor() {
         eat(TokenType.FOR);
         int line = lex.getLine();
@@ -187,7 +189,7 @@ public class SyntaticAnalysis {
                 return fc;
             }
         }
-        if(current.type == TokenType.COLON) {
+        if (current.type == TokenType.COLON) {
             advance();
             Variable var2 = procName();
             names.add(var2);
@@ -260,7 +262,6 @@ public class SyntaticAnalysis {
         Expr expr = procRel();
         while (current.type == TokenType.AND || current.type == TokenType.OR) {
             advance();
-            // FIXME: Implement me!
             procRel();
         }
 
@@ -284,7 +285,11 @@ public class SyntaticAnalysis {
     // <concat> ::= <arith> { '..' <arith> }
     private Expr procConcat() {
         Expr expr = procArith();
-        // FIXME: Implement me!
+
+        while (current.type == TokenType.CONCAT) {
+            advance();
+            procArith();
+        }
 
         return expr;
     }
@@ -292,7 +297,10 @@ public class SyntaticAnalysis {
     // <arith> ::= <term> { ('+' | '-') <term> }
     private Expr procArith() {
         Expr expr = procTerm();
-        // FIXME: Implement me!
+        while (current.type == TokenType.ADD || current.type == TokenType.SUB) {
+            advance();
+            procTerm();
+        }
 
         return expr;
     }
@@ -300,7 +308,11 @@ public class SyntaticAnalysis {
     // <term> ::= <factor> { ('*' | '/' | '%') <factor> }
     private Expr procTerm() {
         Expr expr = procFactor();
-        // FIXME: Implement me!
+
+        while ((current.type == TokenType.MUL) || (current.type == TokenType.DIV) || (current.type == TokenType.MOD)) {
+            advance();
+            procFactor();
+        }
 
         return expr;
     }
@@ -309,7 +321,11 @@ public class SyntaticAnalysis {
     private Expr procFactor() {
         Expr expr = null;
         if (current.type == TokenType.OPEN_PAR) {
-            // FIXME: Implement me!
+
+            advance();
+            procExpr();
+            eat(TokenType.CLOSE_PAR);
+
         } else {
             UnaryOp op = null;
             if (current.type == TokenType.SUB) {
@@ -403,14 +419,55 @@ public class SyntaticAnalysis {
 
     // <function> ::= (read | tonumber | tostring) '(' [ <expr> ] ')'
     private void procFunction() {
+
+        Expr expr = null;
+
+        UnaryOp op = null;
+        if (current.type == TokenType.READ) {
+            advance();
+            op = UnaryOp.Read;
+        } else if (current.type == TokenType.TONUMBER) {
+            advance();
+            op = UnaryOp.ToNumber;
+        } else if (current.type == TokenType.TOSTRING) {
+            advance();
+            op = UnaryOp.ToString;
+        } else {
+            showError();
+        }
+
+        int line = lex.getLine();
+
+        if (op != null) {
+            expr = new UnaryExpr(line, expr, op);
+        }
     }
 
     // <table> ::= '{' [ <elem> { ',' <elem> } ] '}'
     private void procTable() {
+        eat(TokenType.OPEN_CUR);
+        if (current.type == TokenType.CLOSE_CUR) {
+            eat(TokenType.CLOSE_CUR);
+        } else {
+            procElem();
+            while (current.type == TokenType.COLON) {
+                advance();
+                procElem();
+            }
+            eat(TokenType.CLOSE_CUR);
+        }
+
     }
 
     // <elem> ::= [ '[' <expr> ']' '=' ] <expr>
     private void procElem() {
+        if (current.type == TokenType.OPEN_BRA) {
+            advance();
+            procExpr();
+            eat(TokenType.CLOSE_BRA);
+        }
+        eat(TokenType.EQUAL);
+        procExpr();
     }
 
     private Variable procName() {
