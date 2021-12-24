@@ -8,8 +8,11 @@ import interpreter.command.AssignCommand;
 import interpreter.command.BlocksCommand;
 import interpreter.command.Command;
 import interpreter.command.PrintCommand;
+import interpreter.command.RepeatCommand;
 import interpreter.command.WhileCommand;
-import interpreter.command.ForCommand;
+import interpreter.command.GenericForCommand;
+import interpreter.command.IfCommand;
+import interpreter.command.NumericForCommand;
 import interpreter.expr.ConstExpr;
 import interpreter.expr.Expr;
 import interpreter.expr.SetExpr;
@@ -80,12 +83,8 @@ public class SyntaticAnalysis {
     private BlocksCommand procCode() {
         int line = lex.getLine();
         List<Command> cmds = new ArrayList<Command>();
-        while (current.type == TokenType.IF ||
-                current.type == TokenType.WHILE ||
-                current.type == TokenType.REPEAT ||
-                current.type == TokenType.FOR ||
-                current.type == TokenType.PRINT ||
-                current.type == TokenType.ID) {
+        while (current.type == TokenType.IF || current.type == TokenType.WHILE || current.type == TokenType.REPEAT
+                || current.type == TokenType.FOR || current.type == TokenType.PRINT || current.type == TokenType.ID) {
             Command cmd = procCmd();
             cmds.add(cmd);
         }
@@ -98,13 +97,13 @@ public class SyntaticAnalysis {
     private Command procCmd() {
         Command cmd = null;
         if (current.type == TokenType.IF) {
-            procIf();
+            cmd = procIf();
         } else if (current.type == TokenType.WHILE) {
             cmd = procWhile();
         } else if (current.type == TokenType.REPEAT) {
-            procRepeat();
+            cmd = procRepeat();
         } else if (current.type == TokenType.FOR) {
-            procFor();
+            cmd = procFor();
         } else if (current.type == TokenType.PRINT) {
             cmd = procPrint();
         } else if (current.type == TokenType.ID) {
@@ -121,22 +120,30 @@ public class SyntaticAnalysis {
 
     // <if> ::= if <expr> then <code> { elseif <expr> then <code> } [ else <code> ]
     // end
-    private void procIf() {
+    private IfCommand procIf() {
+        int line = lex.getLine();
+
         eat(TokenType.IF);
-        procExpr();
+
+        Expr expr = procExpr();
+
         eat(TokenType.THEN);
-        procCode();
+        Command thenCmds = procCode();
         while (current.type == TokenType.ELSEIF) {
             advance();
             procExpr();
             eat(TokenType.THEN);
-            procCode();
+            thenCmds = procCode();
         }
+
+        IfCommand ifc = new IfCommand(line, expr, thenCmds);
+
         if (current.type == TokenType.ELSE) {
             advance();
-            procCode();
+            ifc.setElseCommand(procCode());
         }
         eat(TokenType.END);
+        return ifc;
     }
 
     // <while> ::= while <expr> do <code> end
@@ -154,23 +161,36 @@ public class SyntaticAnalysis {
     }
 
     // <repeat> ::= repeat <code> until <expr>
-    private void procRepeat() {
+    private RepeatCommand procRepeat() {
+
+        int line = lex.getLine();
         eat(TokenType.REPEAT);
-        procCode();
+        Command cmd = procCode();
         eat(TokenType.UNTIL);
-        procExpr();
+        Expr expr = procExpr();
+
+        RepeatCommand rc = new RepeatCommand(line, cmd, expr);
+
+        return rc;
     }
 
     // <for> ::= for <name> (('=' <expr> ',' <expr> [',' <expr>]) | ([',' <name>] in
     // <expr>)) do <code> end
-    private ForCommand procFor() {
+    private Command procFor() {
+
         eat(TokenType.FOR);
+
         int line = lex.getLine();
+        Command forCommand = null;
+        boolean isNumericFor = false;
+
         Vector<Expr> exprs = new Vector<Expr>();
         Vector<Variable> names = new Vector<Variable>();
 
         Variable var = procName();
+
         names.add(var);
+
         if (current.type == TokenType.ASSIGN) {
             eat(TokenType.ASSIGN);
             Expr start = procExpr();
@@ -178,30 +198,39 @@ public class SyntaticAnalysis {
             advance();
             Expr end = procExpr();
             exprs.add(end);
+
             if (current.type == TokenType.COLON) {
                 advance();
                 Expr step = procExpr();
                 exprs.add(step);
-                eat(TokenType.DO);
-                Command cmd = procCode();
-                eat(TokenType.END);
-                ForCommand fc = new ForCommand(line, names, exprs, cmd);
-                return fc;
             }
-        }
-        if (current.type == TokenType.COLON) {
-            advance();
-            Variable var2 = procName();
-            names.add(var2);
+
+            isNumericFor = true;
+
+        } else {
+
+            if (current.type == TokenType.COLON) {
+                advance();
+                Variable var2 = procName();
+                names.add(var2);
+            }
+
             eat(TokenType.IN);
             Expr expr = procExpr();
             exprs.add(expr);
+
+            isNumericFor = false;
         }
+
         eat(TokenType.DO);
-        Command cmd = procCode();
+
+        Command cmds = procCode();
+        forCommand = isNumericFor ? new NumericForCommand(line, var, exprs.get(0), exprs.get(1), exprs.get(2), cmds)
+                : new GenericForCommand(line, names.get(0), names.get(1), exprs.get(0), cmds);
+
         eat(TokenType.END);
-        ForCommand fc = new ForCommand(line, names, exprs, cmd);
-        return fc;
+
+        return forCommand;
     }
 
     // <print> ::= print '(' [ <expr> ] ')'
@@ -211,20 +240,12 @@ public class SyntaticAnalysis {
         eat(TokenType.OPEN_PAR);
 
         Expr expr = null;
-        if (current.type == TokenType.OPEN_PAR ||
-                current.type == TokenType.SUB ||
-                current.type == TokenType.SIZE ||
-                current.type == TokenType.NOT ||
-                current.type == TokenType.NUMBER ||
-                current.type == TokenType.STRING ||
-                current.type == TokenType.FALSE ||
-                current.type == TokenType.TRUE ||
-                current.type == TokenType.NIL ||
-                current.type == TokenType.READ ||
-                current.type == TokenType.TONUMBER ||
-                current.type == TokenType.TOSTRING ||
-                current.type == TokenType.OPEN_CUR ||
-                current.type == TokenType.ID) {
+        if (current.type == TokenType.OPEN_PAR || current.type == TokenType.SUB || current.type == TokenType.SIZE
+                || current.type == TokenType.NOT || current.type == TokenType.NUMBER || current.type == TokenType.STRING
+                || current.type == TokenType.FALSE || current.type == TokenType.TRUE || current.type == TokenType.NIL
+                || current.type == TokenType.READ || current.type == TokenType.TONUMBER
+                || current.type == TokenType.TOSTRING || current.type == TokenType.OPEN_CUR
+                || current.type == TokenType.ID) {
             expr = procExpr();
         }
 
@@ -271,12 +292,9 @@ public class SyntaticAnalysis {
     // <rel> ::= <concat> [ ('<' | '>' | '<=' | '>=' | '~=' | '==') <concat> ]
     private Expr procRel() {
         Expr expr = procConcat();
-        if (current.type == TokenType.LOWER_THAN ||
-                current.type == TokenType.GREATER_THAN ||
-                current.type == TokenType.LOWER_EQUAL ||
-                current.type == TokenType.GREATER_EQUAL ||
-                current.type == TokenType.NOT_EQUAL ||
-                current.type == TokenType.EQUAL)
+        if (current.type == TokenType.LOWER_THAN || current.type == TokenType.GREATER_THAN
+                || current.type == TokenType.LOWER_EQUAL || current.type == TokenType.GREATER_EQUAL
+                || current.type == TokenType.NOT_EQUAL || current.type == TokenType.EQUAL)
             advance();
 
         return expr;
@@ -353,8 +371,7 @@ public class SyntaticAnalysis {
     private SetExpr procLValue() {
         Variable var = procName();
 
-        while (current.type == TokenType.DOT ||
-                current.type == TokenType.OPEN_BRA) {
+        while (current.type == TokenType.DOT || current.type == TokenType.OPEN_BRA) {
             if (current.type == TokenType.DOT) {
                 advance();
                 procName();
@@ -371,17 +388,13 @@ public class SyntaticAnalysis {
     // <rvalue> ::= <const> | <function> | <table> | <lvalue>
     private Expr procRValue() {
         Expr expr = null;
-        if (current.type == TokenType.NUMBER ||
-                current.type == TokenType.STRING ||
-                current.type == TokenType.FALSE ||
-                current.type == TokenType.TRUE ||
-                current.type == TokenType.NIL) {
+        if (current.type == TokenType.NUMBER || current.type == TokenType.STRING || current.type == TokenType.FALSE
+                || current.type == TokenType.TRUE || current.type == TokenType.NIL) {
             Value<?> v = procConst();
             int line = lex.getLine();
             expr = new ConstExpr(line, v);
-        } else if (current.type == TokenType.READ ||
-                current.type == TokenType.TONUMBER ||
-                current.type == TokenType.TOSTRING) {
+        } else if (current.type == TokenType.READ || current.type == TokenType.TONUMBER
+                || current.type == TokenType.TOSTRING) {
             procFunction();
         } else if (current.type == TokenType.OPEN_CUR) {
             procTable();
