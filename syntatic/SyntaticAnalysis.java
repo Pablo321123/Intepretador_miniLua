@@ -83,8 +83,7 @@ public class SyntaticAnalysis {
     private BlocksCommand procCode() {
         int line = lex.getLine();
         List<Command> cmds = new ArrayList<Command>();
-        while (current.type == TokenType.IF || current.type == TokenType.WHILE || current.type == TokenType.REPEAT
-                || current.type == TokenType.FOR || current.type == TokenType.PRINT || current.type == TokenType.ID) {
+        while (current.type == TokenType.IF || current.type == TokenType.WHILE || current.type == TokenType.REPEAT || current.type == TokenType.FOR || current.type == TokenType.PRINT || current.type == TokenType.ID) {
             Command cmd = procCmd();
             cmds.add(cmd);
         }
@@ -395,7 +394,7 @@ public class SyntaticAnalysis {
             expr = new ConstExpr(line, v);
         } else if (current.type == TokenType.READ || current.type == TokenType.TONUMBER
                 || current.type == TokenType.TOSTRING) {
-            procFunction();
+            expr = procFunction();
         } else if (current.type == TokenType.OPEN_CUR) {
             procTable();
         } else if (current.type == TokenType.ID) {
@@ -431,11 +430,12 @@ public class SyntaticAnalysis {
     }
 
     // <function> ::= (read | tonumber | tostring) '(' [ <expr> ] ')'
-    private void procFunction() {
+    private UnaryExpr procFunction() {
 
         Expr expr = null;
 
         UnaryOp op = null;
+        
         if (current.type == TokenType.READ) {
             advance();
             op = UnaryOp.Read;
@@ -451,9 +451,33 @@ public class SyntaticAnalysis {
 
         int line = lex.getLine();
 
-        if (op != null) {
-            expr = new UnaryExpr(line, expr, op);
+        eat(TokenType.OPEN_PAR);
+
+        if (current.type == TokenType.OPEN_PAR
+                || current.type == TokenType.SUB
+                || current.type == TokenType.SIZE
+                || current.type == TokenType.NOT
+                || current.type == TokenType.NUMBER
+                || current.type == TokenType.STRING
+                || current.type == TokenType.FALSE
+                || current.type == TokenType.TRUE
+                || current.type == TokenType.NIL
+                || current.type == TokenType.READ
+                || current.type == TokenType.TONUMBER
+                || current.type == TokenType.TOSTRING
+                || current.type == TokenType.OPEN_CUR
+                || current.type == TokenType.ID) {
+            expr = procExpr();
         }
+
+        eat(TokenType.CLOSE_PAR);
+
+        UnaryExpr unaryExpr = new UnaryExpr(line, expr, op);
+        return unaryExpr;
+
+        /*if (op != null) {
+            expr = new UnaryExpr(line, expr, op);
+        }*/
     }
 
     // <table> ::= '{' [ <elem> { ',' <elem> } ] '}'

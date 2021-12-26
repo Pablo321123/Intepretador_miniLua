@@ -5,8 +5,14 @@ import interpreter.value.NumberValue;
 import interpreter.value.StringValue;
 import interpreter.value.Value;
 import interpreter.util.Utils;
+import java.util.Scanner;
 
 public class UnaryExpr extends Expr {
+
+    private static Scanner input;
+    static {
+        input = new Scanner(System.in);
+    }
 
     private Expr expr;
     private UnaryOp op;
@@ -19,7 +25,7 @@ public class UnaryExpr extends Expr {
 
     @Override
     public Value<?> expr() {
-        Value<?> v = expr.expr();
+        Value<?> v = expr != null ? expr.expr() : null;
 
         Value<?> ret = null;
         switch (op) {
@@ -27,10 +33,13 @@ public class UnaryExpr extends Expr {
                 ret = negOp(v);
                 break;
             case Size:
-                // FIXME: implement me!
+                //ret = sizeOp(v);
                 break;
             case Not:
                 ret = notOp(v);
+                break;
+            case Read:
+                ret = readOp(v);
                 break;
             default:
                 Utils.abort(super.getLine());
@@ -60,6 +69,35 @@ public class UnaryExpr extends Expr {
         }
 
         return ret;
+    }
+
+    /*private Value<?> sizeOp(Value<?> v) {
+        Value<?> ret = null;
+        if (v instanceof StringValue) {
+            StringValue sv = (StringValue) v;
+            String tmp = sv.value();
+            //ret = new NumberValue(tmp.length());
+        } else {
+            Utils.abort(super.getLine());
+        }
+
+        return ret;
+    }*/
+
+    private Value<?> readOp(Value<?> v) {
+        System.out.print("ola");
+        /*Value<?> ret = null;
+        if (v instanceof StringValue) {
+            StringValue sv = (StringValue) v;
+            String tmp = sv.value();
+            System.out.println(tmp);
+            String inputStr = input.nextLine();
+            ret = new StringValue(inputStr);
+        } else {
+            Utils.abort(super.getLine());
+        }*/
+
+        return null;
     }
 
     private Value<?> notOp(Value<?> v) {
