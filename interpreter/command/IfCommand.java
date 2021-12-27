@@ -1,6 +1,7 @@
 package interpreter.command;
 
 import interpreter.expr.Expr;
+import interpreter.value.Value;
 
 public class IfCommand extends Command {
 
@@ -22,12 +23,15 @@ public class IfCommand extends Command {
 
     @Override
     public void execute() {
-        if (expr.expr().eval()) {
+
+        Value<?> v = expr.expr();
+
+        if(v.eval() == true){
             thenCmds.execute();
-        } else {
-            if (elseCmds != null) {
-                elseCmds.execute();
-            }
+        }
+
+        if(elseCmds != null && v.eval() == false){
+            elseCmds.execute();
         }
 
     }

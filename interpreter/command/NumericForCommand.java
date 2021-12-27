@@ -2,6 +2,9 @@ package interpreter.command;
 
 import interpreter.expr.Expr;
 import interpreter.expr.Variable;
+import interpreter.value.NumberValue;
+import interpreter.value.Value;
+import interpreter.util.Utils;
 
 /**
  * NumericForCommand
@@ -24,7 +27,26 @@ public class NumericForCommand extends Command {
     }
 
     public void execute() {
-
+        Value<?> v1 = expr1.expr();
+        Value<?> v2 = expr2.expr();
+        Value<?> v3 = expr3.expr();
+        Value<?> v = var.expr();
+        if (v1 instanceof NumberValue && v2 instanceof NumberValue && v3 instanceof NumberValue) {
+            NumberValue nv1 = (NumberValue) v1;
+            NumberValue nv2 = (NumberValue) v2;
+            NumberValue nv3 = (NumberValue) v3;
+            Double d1 = nv1.value();
+            Double d2 = nv2.value();
+            Double d3 = nv3.value();
+            Double d = d1;
+            while (d <= d2) {
+                //v.setValue(new NumberValue(d));
+                cmd.execute();
+                d += d3;
+            }
+        } else {
+            Utils.abort(super.getLine());
+        }
     }
 
 }

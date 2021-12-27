@@ -41,6 +41,7 @@ public class UnaryExpr extends Expr {
             case Read:
                 ret = readOp(v);
                 break;
+
             default:
                 Utils.abort(super.getLine());
         }
@@ -85,19 +86,20 @@ public class UnaryExpr extends Expr {
     }*/
 
     private Value<?> readOp(Value<?> v) {
-        System.out.print("ola");
-        /*Value<?> ret = null;
+        // String tmp = input.nextLine();
+        // System.out.println(tmp);
         if (v instanceof StringValue) {
-            StringValue sv = (StringValue) v;
-            String tmp = sv.value();
-            System.out.println(tmp);
-            String inputStr = input.nextLine();
-            ret = new StringValue(inputStr);
+            StringValue msg = (StringValue) v;
+            System.out.print(msg.value());
         } else {
             Utils.abort(super.getLine());
-        }*/
+        }
 
-        return null;
+        String inputStr = input.nextLine().trim();
+        StringValue sv = new StringValue(inputStr);
+
+        return sv;
+
     }
 
     private Value<?> notOp(Value<?> v) {

@@ -19,7 +19,9 @@ public class RepeatCommand extends Command {
     @Override
     public void execute() {
         // TODO Auto-generated method stub
-
+        while (expr.expr().value().equals(1)) {
+            cmd.execute();
+        }
     }
 
 }

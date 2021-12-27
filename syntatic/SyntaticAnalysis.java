@@ -18,6 +18,10 @@ import interpreter.expr.Expr;
 import interpreter.expr.SetExpr;
 import interpreter.expr.UnaryOp;
 import interpreter.expr.UnaryExpr;
+import interpreter.expr.ComparativeOp;
+import interpreter.expr.ComparativeExpr;
+import interpreter.expr.ArithOp;
+import interpreter.expr.ArithExpr;
 import interpreter.expr.Variable;
 import interpreter.value.BooleanValue;
 import interpreter.value.NumberValue;
@@ -45,14 +49,14 @@ public class SyntaticAnalysis {
     }
 
     private void advance() {
-        // System.out.println("Advanced (\"" + current.token + "\", " +
-        // current.type + ")");
+         System.out.println("Advanced (\"" + current.token + "\", " +
+         current.type + ")");
         current = lex.nextToken();
     }
 
     private void eat(TokenType type) {
-        // System.out.println("Expected (..., " + type + "), found (\"" +
-        // current.token + "\", " + current.type + ")");
+         System.out.println("Expected (..., " + type + "), found (\"" +
+         current.token + "\", " + current.type + ")");
         if (type == current.type) {
             current = lex.nextToken();
         } else {
@@ -120,7 +124,9 @@ public class SyntaticAnalysis {
     // <if> ::= if <expr> then <code> { elseif <expr> then <code> } [ else <code> ]
     // end
     private IfCommand procIf() {
+
         int line = lex.getLine();
+        IfCommand ifc = null;
 
         eat(TokenType.IF);
 
@@ -128,6 +134,8 @@ public class SyntaticAnalysis {
 
         eat(TokenType.THEN);
         Command thenCmds = procCode();
+        ifc = new IfCommand(line, expr, thenCmds);
+
         while (current.type == TokenType.ELSEIF) {
             advance();
             procExpr();
@@ -135,12 +143,11 @@ public class SyntaticAnalysis {
             thenCmds = procCode();
         }
 
-        IfCommand ifc = new IfCommand(line, expr, thenCmds);
-
         if (current.type == TokenType.ELSE) {
             advance();
             ifc.setElseCommand(procCode());
         }
+
         eat(TokenType.END);
         return ifc;
     }
@@ -279,33 +286,88 @@ public class SyntaticAnalysis {
 
     // <expr> ::= <rel> { (and | or) <rel> }
     private Expr procExpr() {
-        Expr expr = procRel();
-        while (current.type == TokenType.AND || current.type == TokenType.OR) {
-            advance();
-            procRel();
-        }
+        int line = lex.getLine();
+        Expr expr = procRel(), expr2;
 
+        ComparativeOp op = null;
+        ComparativeExpr compExpr = null;
+
+        while (current.type == TokenType.AND || current.type == TokenType.OR) {
+            if (current.type == TokenType.AND) {
+                op = ComparativeOp.AND;
+            } else {
+                op = ComparativeOp.OR;
+            }
+            advance();
+            expr2 = procRel();
+            compExpr = new ComparativeExpr(line, expr, op, expr2);
+            expr = compExpr;
+        }
         return expr;
     }
 
     // <rel> ::= <concat> [ ('<' | '>' | '<=' | '>=' | '~=' | '==') <concat> ]
     private Expr procRel() {
-        Expr expr = procConcat();
-        if (current.type == TokenType.LOWER_THAN || current.type == TokenType.GREATER_THAN
-                || current.type == TokenType.LOWER_EQUAL || current.type == TokenType.GREATER_EQUAL
-                || current.type == TokenType.NOT_EQUAL || current.type == TokenType.EQUAL)
-            advance();
+        Expr expr = procConcat(), expr2;
 
-        return expr;
+        ComparativeOp op = null;
+        ComparativeExpr compExpr = null;
+        
+        if (current.type == TokenType.LOWER_THAN) {
+            advance();
+            expr2 = procConcat();
+            op = ComparativeOp.LOWER_THAN;
+            compExpr = new ComparativeExpr(lex.getLine(), expr, op, expr2);
+            return compExpr;
+        } else if (current.type == TokenType.GREATER_THAN) {
+            advance();
+            expr2 = procConcat();
+            op = ComparativeOp.GREATER_THAN;
+            compExpr = new ComparativeExpr(lex.getLine(), expr, op, expr2);
+            return compExpr;
+        } else if (current.type == TokenType.LOWER_EQUAL) {
+            advance();
+            expr2 = procConcat();
+            op = ComparativeOp.LOWER_EQUAL;
+            compExpr = new ComparativeExpr(lex.getLine(), expr, op, expr2);
+            return compExpr;
+        } else if (current.type == TokenType.GREATER_EQUAL) {
+            advance();
+            expr2 = procConcat();
+            op = ComparativeOp.GREATER_EQUAL;
+            compExpr = new ComparativeExpr(lex.getLine(), expr, op, expr2);
+            return compExpr;
+        } else if (current.type == TokenType.NOT_EQUAL) {
+            advance();
+            expr2 = procConcat();
+            op = ComparativeOp.NOT_EQUAL;
+            compExpr = new ComparativeExpr(lex.getLine(), expr, op, expr2);
+            return compExpr;
+        } else if (current.type == TokenType.EQUAL) {
+            advance();
+            expr2 = procConcat();
+            op = ComparativeOp.EQUAL;
+            compExpr = new ComparativeExpr(lex.getLine(), expr, op, expr2);
+            return compExpr;
+        } else {
+            return expr;
+        }
     }
 
     // <concat> ::= <arith> { '..' <arith> }
     private Expr procConcat() {
         Expr expr = procArith();
+        int line = lex.getLine();
+
+        ArithExpr concatExpr = null;
+        ArithOp op = null;
 
         while (current.type == TokenType.CONCAT) {
             advance();
-            procArith();
+            Expr expr2 = procArith();
+            op = ArithOp.CONCAT;
+            concatExpr = new ArithExpr(line, expr, op, expr2);
+            expr = concatExpr;
         }
 
         return expr;
@@ -313,10 +375,21 @@ public class SyntaticAnalysis {
 
     // <arith> ::= <term> { ('+' | '-') <term> }
     private Expr procArith() {
-        Expr expr = procTerm();
+        Expr expr = procTerm(), expr2;
+
+        ArithExpr arithExpr = null;
+        ArithOp op = null;
+
         while (current.type == TokenType.ADD || current.type == TokenType.SUB) {
+            if (current.type == TokenType.ADD) {
+                op = ArithOp.ADD;
+            } else {
+                op = ArithOp.SUB;
+            }
             advance();
-            procTerm();
+            expr2 = procTerm();
+            arithExpr = new ArithExpr(lex.getLine(), expr, op, expr2);
+            expr = arithExpr;
         }
 
         return expr;
@@ -324,11 +397,24 @@ public class SyntaticAnalysis {
 
     // <term> ::= <factor> { ('*' | '/' | '%') <factor> }
     private Expr procTerm() {
-        Expr expr = procFactor();
+        Expr expr = procFactor(), expr2;
 
-        while ((current.type == TokenType.MUL) || (current.type == TokenType.DIV) || (current.type == TokenType.MOD)) {
+        ArithExpr arithExpr = null;
+        ArithOp op = null;
+
+        while (current.type == TokenType.MUL || current.type == TokenType.DIV
+                || current.type == TokenType.MOD) {
+            if (current.type == TokenType.MUL) {
+                op = ArithOp.MUL;
+            } else if (current.type == TokenType.DIV) {
+                op = ArithOp.DIV;
+            } else {
+                op = ArithOp.MOD;
+            }
             advance();
-            procFactor();
+            expr2 = procFactor();
+            arithExpr = new ArithExpr(lex.getLine(), expr, op, expr2);
+            expr = arithExpr;
         }
 
         return expr;
@@ -475,9 +561,6 @@ public class SyntaticAnalysis {
         UnaryExpr unaryExpr = new UnaryExpr(line, expr, op);
         return unaryExpr;
 
-        /*if (op != null) {
-            expr = new UnaryExpr(line, expr, op);
-        }*/
     }
 
     // <table> ::= '{' [ <elem> { ',' <elem> } ] '}'

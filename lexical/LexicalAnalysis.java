@@ -36,150 +36,169 @@ public class LexicalAnalysis implements AutoCloseable {
         Lexeme lex = new Lexeme("", TokenType.END_OF_FILE);
 
         int state = 1;
+
         while (state != 17 && state != 18) {
             int c = getc();
             // System.out.printf(" [%02d, %03d ('%c')]\n", state, c, (char) c);
 
             switch (state) {
                 case 1:
-                    if (c == ' ' || c == '\t' || c == '\r') {
-                        state = 1;
-                    } else if (c == '\n') {
-                        line++;
-                        state = 1;
-                    } else if (c == '~') {
-                        lex.token += (char) c;
-                        state = 11;
-                    } else if (c == ';' || c == ',' || c == '+' || c == '*' || c == '/' || c == '%' || c == '#'
-                            || c == '(' || c == ')' || c == '[' || c == ']' || c == '{' || c == '}') {
-                        lex.token += (char) c;
-                        state = 17;
-                    } else if (c == '=' || c == '<' || c == '>') {
-                        lex.token += (char) c;
-                        state = 10;
-                    } else if (c == '.') {
-                        lex.token += (char) c;
-                        state = 12;
-                    } else if (Character.isLetter(c)) {
+                    if (Character.isLetter(c) || c == '_') {
                         lex.token += (char) c;
                         state = 13;
-                    } else if (c == '"') {
-                        lex.token += (char) c;
-                        state = 14;
-
                     } else if (Character.isDigit(c)) {
                         lex.token += (char) c;
                         state = 15;
                     } else if (c == '-') {
                         lex.token += (char) c;
                         state = 2;
+                    } else if (c == ';' || c == ',' || c == '+' || c == '*' || c == '/' || c == '%' ||
+                            c == '#' || c == '(' || c == ')' || c == '[' || c == ']' || c == '{' ||
+                            c == '}') {
+                        lex.token += (char) c;
+                        state = 17;
+                    } else if (c == ' ' || c == '\r' || c == '\t') {
+                        state = 1;
+                    } else if (c == '\n') {
+                        state = 1;
+                        line++;
+                    } else if (c == '~') {
+                        lex.token += (char) c;
+                        state = 11;
+                    } else if (c == '=' || c == '>' || c == '<') {
+                        lex.token += (char) c;
+                        state = 10;
+                    } else if (c == '.') {
+                        lex.token += (char) c;
+                        state = 12;
+                    } else if (c == '"') {
+                        state = 14;
                     } else if (c == -1) {
                         lex.type = TokenType.END_OF_FILE;
                         state = 18;
                     } else {
                         lex.token += (char) c;
-                        lex.type = TokenType.INVALID_TOKEN;
                         state = 18;
+                        lex.type = TokenType.INVALID_TOKEN;
                     }
-
                     break;
                 case 2:
                     if (c == '-') {
-                        // lex.token += (char) c;
+                        lex.token += (char) c;
                         state = 3;
                     } else {
-                        lex.token += (char) c;
                         ungetc(c);
                         state = 17;
                     }
                     break;
                 case 3:
-                    if (c == '\n') {
-                        line++;
-                        state = 1;
-                        // ungetc(c);
-                    } else if (c == '[') {
-                        // lex.token += (char) c;
+                    if (c == '[') {
+                        lex.token += (char) c;
                         state = 4;
+                    } else if (c == '\n') {
+                        state = 1;
+                        lex.token = "";
+                    } else if (c == -1) {
+                        lex.token = "";
+                        lex.type = TokenType.END_OF_FILE;
+                        state = 18;
                     } else {
-                        // lex.token += (char) c;
                         state = 9;
+                        lex.token += (char) c;
                     }
-
                     break;
                 case 4:
-                    if (c == '\n') {
-                        line++;
-                        state = 1;
-                    } else if (c == '[') {
-                        // lex.token += (char) c;
+                    if (c == '[') {
+                        lex.token += (char) c;
                         state = 5;
+                    } else if (c == -1) {
+                        lex.token = "";
+                        lex.type = TokenType.END_OF_FILE;
+                        state = 18;
+                    } else if (c == '\n') {
+                        state = 1;
+                        lex.token = "";
                     } else {
-                        // lex.token += (char) c;
                         state = 9;
+                        lex.token += (char) c;
                     }
                     break;
                 case 5:
                     if (c == '-') {
-                        // lex.token += (char) c;
                         state = 6;
+                        lex.token += (char) c;
+                    } else if (c == -1) {
+                        lex.token = "";
+                        lex.type = TokenType.UNEXPECTED_EOF;
+                        state = 18;
                     } else {
-                        // lex.token += (char) c;
                         state = 5;
+                        lex.token += (char) c;
                     }
-
                     break;
                 case 6:
                     if (c == '-') {
-                        // lex.token += (char) c;
-                        state = 6;
+                        state = 7;
+                        lex.token += (char) c;
+                    } else if (c == -1) {
+                        lex.token = "";
+                        lex.type = TokenType.UNEXPECTED_EOF;
+                        state = 18;
                     } else {
-                        // lex.token += (char) c;
                         state = 5;
+                        lex.token += (char) c;
                     }
                     break;
                 case 7:
-                    if (c == '-') {
-                        // lex.token += (char) c;
-                        state = 7;
-                    } else if (c == ']') {
-                        // lex.token += (char) c;
+                    if (c == ']') {
                         state = 8;
+                        lex.token += (char) c;
+                    } else if (c == -1) {
+                        lex.token = "";
+                        lex.type = TokenType.UNEXPECTED_EOF;
+                        state = 18;
                     } else {
-                        // lex.token += (char) c;
                         state = 5;
+                        lex.token += (char) c;
                     }
                     break;
                 case 8:
-                    if (c == '-') {
-                        state = 6;
-                    } else if (c == ']') {
-                        // ungetc(c);
+                    if (c == ']') {
                         state = 1;
+                        lex.token = "";
+                    } else if (c == -1) {
+                        lex.token = "";
+                        lex.type = TokenType.UNEXPECTED_EOF;
+                        state = 18;
+                    } else if (c == '-') {
+                        state = 6;
+                        lex.token += (char) c;
                     } else {
                         state = 5;
+                        lex.token += (char) c;
                     }
                     break;
                 case 9:
-                    if (c != '\n') {
-                        state = 9;
-                    } else {
-                        line++;
+                    if (c == '\n') {
                         state = 1;
-                        // ungetc(c);
+                        lex.token = "";
+                    } else if (c == -1) {
+                        lex.token = "";
+                        lex.type = TokenType.END_OF_FILE;
+                        state = 18;
+                    } else {
+                        lex.token += (char) c;
+                        state = 9;
                     }
                     break;
                 case 10:
-
                     if (c == '=') {
                         lex.token += (char) c;
                         state = 17;
                     } else {
                         ungetc(c);
                         state = 17;
-                        // lex.token += (char) c; // lex.type = TokenType.INVALID_TOKEN;
                     }
-
                     break;
                 case 11:
                     if (c == '=') {
@@ -187,10 +206,9 @@ public class LexicalAnalysis implements AutoCloseable {
                         state = 17;
                     } else {
                         ungetc(c);
-                        lex.type = TokenType.INVALID_TOKEN;
                         state = 18;
+                        lex.type = TokenType.INVALID_TOKEN;
                     }
-
                     break;
                 case 12:
                     if (c == '.') {
@@ -199,7 +217,6 @@ public class LexicalAnalysis implements AutoCloseable {
                     } else {
                         ungetc(c);
                         state = 17;
-                        // lex.token += (char) c; // lex.type = TokenType.INVALID_TOKEN;
                     }
                     break;
                 case 13:
@@ -210,13 +227,18 @@ public class LexicalAnalysis implements AutoCloseable {
                         ungetc(c);
                         state = 17;
                     }
-
                     break;
                 case 14:
                     if (c == '"') {
+                        // lex.token += (char) c;
+                        state = 18;
+                    } else if (c == -1) {
+                        lex.token = "";
+                        lex.type = TokenType.UNEXPECTED_EOF;
                         state = 18;
                     } else {
                         lex.token += (char) c;
+                        lex.type = TokenType.STRING;
                         state = 14;
                     }
                     break;
@@ -232,13 +254,14 @@ public class LexicalAnalysis implements AutoCloseable {
                         lex.type = TokenType.NUMBER;
                         state = 18;
                     }
-
                     break;
                 case 16:
                     if (Character.isDigit(c)) {
                         lex.token += (char) c;
                         state = 16;
-                    } else {
+                    }
+
+                    else {
                         ungetc(c);
                         lex.type = TokenType.NUMBER;
                         state = 18;
