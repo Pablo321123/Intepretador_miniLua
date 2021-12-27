@@ -41,6 +41,12 @@ public class UnaryExpr extends Expr {
             case Read:
                 ret = readOp(v);
                 break;
+            case ToNumber:
+                ret = toNumberOp(v);
+                break;
+            case ToString:
+                ret = toStringOp(v);
+                break;
 
             default:
                 Utils.abort(super.getLine());
@@ -65,6 +71,43 @@ public class UnaryExpr extends Expr {
             } catch (Exception e) {
                 Utils.abort(super.getLine());
             }
+        } else {
+            Utils.abort(super.getLine());
+        }
+
+        return ret;
+    }
+
+    private Value<?> toNumberOp(Value<?> v) {
+        Value<?> ret = null;
+        if (v instanceof StringValue) {
+            StringValue sv = (StringValue) v;
+            String tmp = sv.value();
+            try {
+                Double d = Double.valueOf(tmp);
+                ret = new NumberValue(d);
+            } catch (Exception e) {
+                Utils.abort(super.getLine());
+            }
+        } else if (v instanceof NumberValue) {
+            ret = v;
+        } else {
+            Utils.abort(super.getLine());
+        }
+
+        return ret;
+    }
+
+    private Value<?> toStringOp(Value<?> v) {
+        Value<?> ret = null;
+        if (v instanceof NumberValue) {
+            NumberValue nv = (NumberValue) v;
+            Double d = nv.value();
+            ret = new StringValue(d.toString());
+        } else if (v instanceof BooleanValue) {
+            BooleanValue bv = (BooleanValue) v;
+            Boolean b = bv.value();
+            ret = new StringValue(b.toString());
         } else {
             Utils.abort(super.getLine());
         }
