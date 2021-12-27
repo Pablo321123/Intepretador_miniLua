@@ -33,7 +33,7 @@ public class UnaryExpr extends Expr {
                 ret = negOp(v);
                 break;
             case Size:
-                //ret = sizeOp(v);
+                // ret = sizeOp(v);
                 break;
             case Not:
                 ret = notOp(v);
@@ -72,18 +72,14 @@ public class UnaryExpr extends Expr {
         return ret;
     }
 
-    /*private Value<?> sizeOp(Value<?> v) {
-        Value<?> ret = null;
-        if (v instanceof StringValue) {
-            StringValue sv = (StringValue) v;
-            String tmp = sv.value();
-            //ret = new NumberValue(tmp.length());
-        } else {
-            Utils.abort(super.getLine());
-        }
-
-        return ret;
-    }*/
+    /*
+     * private Value<?> sizeOp(Value<?> v) { Value<?> ret = null; if (v instanceof
+     * StringValue) { StringValue sv = (StringValue) v; String tmp = sv.value();
+     * //ret = new NumberValue(tmp.length()); } else { Utils.abort(super.getLine());
+     * }
+     * 
+     * return ret; }
+     */
 
     private Value<?> readOp(Value<?> v) {
         // String tmp = input.nextLine();
@@ -91,9 +87,10 @@ public class UnaryExpr extends Expr {
         if (v instanceof StringValue) {
             StringValue msg = (StringValue) v;
             System.out.print(msg.value());
-        } else {
-            Utils.abort(super.getLine());
         }
+        // else {
+        // Utils.abort(super.getLine());
+        // }
 
         String inputStr = input.nextLine().trim();
         StringValue sv = new StringValue(inputStr);

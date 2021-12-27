@@ -7,21 +7,21 @@ import java.util.Vector;
 import interpreter.command.AssignCommand;
 import interpreter.command.BlocksCommand;
 import interpreter.command.Command;
-import interpreter.command.PrintCommand;
-import interpreter.command.RepeatCommand;
-import interpreter.command.WhileCommand;
 import interpreter.command.GenericForCommand;
 import interpreter.command.IfCommand;
 import interpreter.command.NumericForCommand;
+import interpreter.command.PrintCommand;
+import interpreter.command.RepeatCommand;
+import interpreter.command.WhileCommand;
+import interpreter.expr.ArithExpr;
+import interpreter.expr.ArithOp;
+import interpreter.expr.ComparativeExpr;
+import interpreter.expr.ComparativeOp;
 import interpreter.expr.ConstExpr;
 import interpreter.expr.Expr;
 import interpreter.expr.SetExpr;
-import interpreter.expr.UnaryOp;
 import interpreter.expr.UnaryExpr;
-import interpreter.expr.ComparativeOp;
-import interpreter.expr.ComparativeExpr;
-import interpreter.expr.ArithOp;
-import interpreter.expr.ArithExpr;
+import interpreter.expr.UnaryOp;
 import interpreter.expr.Variable;
 import interpreter.value.BooleanValue;
 import interpreter.value.NumberValue;
@@ -49,14 +49,12 @@ public class SyntaticAnalysis {
     }
 
     private void advance() {
-         System.out.println("Advanced (\"" + current.token + "\", " +
-         current.type + ")");
+        System.out.println("Advanced (\"" + current.token + "\", " + current.type + ")");
         current = lex.nextToken();
     }
 
     private void eat(TokenType type) {
-         System.out.println("Expected (..., " + type + "), found (\"" +
-         current.token + "\", " + current.type + ")");
+        System.out.println("Expected (..., " + type + "), found (\"" + current.token + "\", " + current.type + ")");
         if (type == current.type) {
             current = lex.nextToken();
         } else {
@@ -87,7 +85,8 @@ public class SyntaticAnalysis {
     private BlocksCommand procCode() {
         int line = lex.getLine();
         List<Command> cmds = new ArrayList<Command>();
-        while (current.type == TokenType.IF || current.type == TokenType.WHILE || current.type == TokenType.REPEAT || current.type == TokenType.FOR || current.type == TokenType.PRINT || current.type == TokenType.ID) {
+        while (current.type == TokenType.IF || current.type == TokenType.WHILE || current.type == TokenType.REPEAT
+                || current.type == TokenType.FOR || current.type == TokenType.PRINT || current.type == TokenType.ID) {
             Command cmd = procCmd();
             cmds.add(cmd);
         }
@@ -312,7 +311,7 @@ public class SyntaticAnalysis {
 
         ComparativeOp op = null;
         ComparativeExpr compExpr = null;
-        
+
         if (current.type == TokenType.LOWER_THAN) {
             advance();
             expr2 = procConcat();
@@ -402,8 +401,7 @@ public class SyntaticAnalysis {
         ArithExpr arithExpr = null;
         ArithOp op = null;
 
-        while (current.type == TokenType.MUL || current.type == TokenType.DIV
-                || current.type == TokenType.MOD) {
+        while (current.type == TokenType.MUL || current.type == TokenType.DIV || current.type == TokenType.MOD) {
             if (current.type == TokenType.MUL) {
                 op = ArithOp.MUL;
             } else if (current.type == TokenType.DIV) {
@@ -521,7 +519,7 @@ public class SyntaticAnalysis {
         Expr expr = null;
 
         UnaryOp op = null;
-        
+
         if (current.type == TokenType.READ) {
             advance();
             op = UnaryOp.Read;
@@ -539,19 +537,11 @@ public class SyntaticAnalysis {
 
         eat(TokenType.OPEN_PAR);
 
-        if (current.type == TokenType.OPEN_PAR
-                || current.type == TokenType.SUB
-                || current.type == TokenType.SIZE
-                || current.type == TokenType.NOT
-                || current.type == TokenType.NUMBER
-                || current.type == TokenType.STRING
-                || current.type == TokenType.FALSE
-                || current.type == TokenType.TRUE
-                || current.type == TokenType.NIL
-                || current.type == TokenType.READ
-                || current.type == TokenType.TONUMBER
-                || current.type == TokenType.TOSTRING
-                || current.type == TokenType.OPEN_CUR
+        if (current.type == TokenType.OPEN_PAR || current.type == TokenType.SUB || current.type == TokenType.SIZE
+                || current.type == TokenType.NOT || current.type == TokenType.NUMBER || current.type == TokenType.STRING
+                || current.type == TokenType.FALSE || current.type == TokenType.TRUE || current.type == TokenType.NIL
+                || current.type == TokenType.READ || current.type == TokenType.TONUMBER
+                || current.type == TokenType.TOSTRING || current.type == TokenType.OPEN_CUR
                 || current.type == TokenType.ID) {
             expr = procExpr();
         }

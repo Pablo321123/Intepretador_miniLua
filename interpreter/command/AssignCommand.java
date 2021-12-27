@@ -19,12 +19,15 @@ public class AssignCommand extends Command {
 
     @Override
     public void execute() {
-        // FIXME: Implementar o resto.
-        Expr right = rhs.get(0);
-        Value<?> v = right.expr();
 
-        SetExpr left = lhs.get(0);
-        left.setValue(v);
+        for (int i = 0; i < rhs.size(); i++) {
+            Expr right = rhs.get(i);
+            Value<?> v = right.expr();
+
+            SetExpr left = lhs.get(i);
+            left.setValue(v);
+        }
+
     }
 
 }

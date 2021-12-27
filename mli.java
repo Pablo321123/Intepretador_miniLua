@@ -5,10 +5,10 @@ import syntatic.SyntaticAnalysis;
 public class mli {
 
     public static void main(String[] args) {
-        /*if (args.length != 1) {
-            System.out.println("Usage: java mli [miniLua file]");
-            return;
-        }*/
+        /*
+         * if (args.length != 1) { System.out.println("Usage: java mli [miniLua file]");
+         * return; }
+         */
 
         try (LexicalAnalysis l = new LexicalAnalysis("teste.lua")) {
             // O código a seguir é dado para testar o interpretador.
@@ -21,12 +21,12 @@ public class mli {
             // // TODO: depois de pronto, comentar o código abaixo.
             // Lexeme lex;
             // do {
-            //     lex = l.nextToken();
-            //     System.out.printf("%02d: (\"%s\", %s)\n", l.getLine(),
-            //         lex.token, lex.type);
+            // lex = l.nextToken();
+            // System.out.printf("%02d: (\"%s\", %s)\n", l.getLine(),
+            // lex.token, lex.type);
             // } while (lex.type != TokenType.END_OF_FILE &&
-            //          lex.type != TokenType.INVALID_TOKEN &&
-            //          lex.type != TokenType.UNEXPECTED_EOF);
+            // lex.type != TokenType.INVALID_TOKEN &&
+            // lex.type != TokenType.UNEXPECTED_EOF);
         } catch (Exception e) {
             System.err.println("Internal error: " + e.getMessage());
             e.printStackTrace();
