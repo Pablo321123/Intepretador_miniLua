@@ -46,7 +46,7 @@ public class NumericForCommand extends Command {
             Double d = d1;
 
             while (d <= d2) {
-                // v.setValue(new NumberValue(d));
+                var.setValue(nv1);
                 cmd.execute();
                 d += d3;
             }

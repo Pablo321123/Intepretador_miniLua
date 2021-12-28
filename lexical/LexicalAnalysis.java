@@ -52,9 +52,8 @@ public class LexicalAnalysis implements AutoCloseable {
                     } else if (c == '-') {
                         lex.token += (char) c;
                         state = 2;
-                    } else if (c == ';' || c == ',' || c == '+' || c == '*' || c == '/' || c == '%' ||
-                            c == '#' || c == '(' || c == ')' || c == '[' || c == ']' || c == '{' ||
-                            c == '}') {
+                    } else if (c == ';' || c == ',' || c == '+' || c == '*' || c == '/' || c == '%' || c == '#'
+                            || c == '(' || c == ')' || c == '[' || c == ']' || c == '{' || c == '}') {
                         lex.token += (char) c;
                         state = 17;
                     } else if (c == ' ' || c == '\r' || c == '\t') {
@@ -230,7 +229,8 @@ public class LexicalAnalysis implements AutoCloseable {
                     break;
                 case 14:
                     if (c == '"') {
-                        // lex.token += (char) c;
+                        //lex.token += (char) c;
+                        lex.type = TokenType.STRING;
                         state = 18;
                     } else if (c == -1) {
                         lex.token = "";

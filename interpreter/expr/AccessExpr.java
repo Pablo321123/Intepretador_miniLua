@@ -16,7 +16,9 @@ public class AccessExpr extends SetExpr {
 
     @Override
     public Value<?> expr() {
-        TableValue tv = (TableValue) base.expr();
+
+        TableValue tv = (TableValue) this.base.expr();
+
         Value<?> indexKey = this.index.expr();
         Value<?> value = tv.value().get(indexKey);
 

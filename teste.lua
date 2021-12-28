@@ -33,7 +33,7 @@ for i=2,#exp-1,2 do
  tmp = res / next
  end 
 
- print(" " .. op .. "(" .. res .. ", " .. next .. "): " .. tmp)
+ print("" .. op .. "(" .. res .. ", " .. next .. "): " .. tmp)
  res = tmp
  stats[op] = stats[op] + 1
  else
@@ -44,7 +44,7 @@ end
 
 print()
 print("Estatisticas:")
-print(" " .. stats.add .. (stats.add == 1 and " adicao" or " adicoes"))
-print(" " .. stats.sub .. (stats.sub == 1 and " substracao" or " subtracoes"))
-print(" " .. stats.mul .. (stats.mul == 1 and " multiplicacao" or " multiplicacoes"))
-print(" " .. stats.div .. (stats.div == 1 and " divisao" or " divisoes")) 
+print("" .. stats.add .. (stats.add == 1 and " adicao" or " adicoes"))
+print("" .. stats.sub .. (stats.sub == 1 and " substracao" or " subtracoes"))
+print("" .. stats.mul .. (stats.mul == 1 and " multiplicacao" or " multiplicacoes"))
+print("" .. stats.div .. (stats.div == 1 and " divisao" or " divisoes")) 

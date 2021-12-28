@@ -200,14 +200,14 @@ public class ComparativeExpr extends Expr {
 
     private Value<?> orOp(Value<?> v1, Value<?> v2) {
         Value<?> ret = null;
-        if (v1 instanceof BooleanValue && v2 instanceof BooleanValue) {
-            BooleanValue bv1 = (BooleanValue) v1;
-            BooleanValue bv2 = (BooleanValue) v2;
-            boolean b1 = bv1.value();
-            boolean b2 = bv2.value();
-            ret = new BooleanValue(b1 || b2);
+        if (v1 != null && ((v1 instanceof BooleanValue) && (Boolean) v1.value() != false)) {
+            // BooleanValue bv1 = (BooleanValue) v1;
+            // BooleanValue bv2 = (BooleanValue) v2;
+            // boolean b1 = bv1.value();
+            // boolean b2 = bv2.value();
+            ret = v1;
         } else {
-            Utils.abort(super.getLine());
+            ret = v2;
         }
 
         return ret;

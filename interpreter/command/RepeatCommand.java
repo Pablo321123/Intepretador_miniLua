@@ -1,6 +1,7 @@
 package interpreter.command;
 
 import interpreter.expr.Expr;
+import interpreter.value.Value;
 
 /**
  * RepeatCommand
@@ -18,10 +19,14 @@ public class RepeatCommand extends Command {
 
     @Override
     public void execute() {
-        // TODO Auto-generated method stub
-        while (expr.expr().value().equals(1)) {
-            cmd.execute();
-        }
+
+        Value<?> v = null;
+
+        do{
+          cmd.execute();
+          v = expr.expr();
+       
+        } while ((v = expr.expr()) != null && !v.eval());
     }
 
 }
