@@ -218,6 +218,8 @@ public class SyntaticAnalysis {
                 advance();
                 Expr step = procExpr();
                 exprs.add(step);
+            } else {
+                exprs.add(null);
             }
 
             isNumericFor = true;

@@ -2,16 +2,18 @@ a = tonumber(read())
 b = 0
 
 if a > 10 then
-print("maior 10")
-elseif a < 3 then
-    print("menor 3")
+print("maior que 10")
 elseif a < 10 then
-print("menor que 10")
+    print("menor que 10")
 else
-    while b < 11 
-    do
+    for i=0, 10 do
+
+        if b == 5 then
+            print("Primeira metade >:)")
+        else
         print(b)
-        b = b + 1
-        
+    end
+    b = b + 1
+
     end
 end

@@ -32,14 +32,14 @@ public class IfCommand extends Command {
 
             if (v.eval() == true) {
                 thenCmds.get(indice_cmd).execute();
-                break;
+                return;
             }
 
-            if (elseCmds != null && v.eval() == false) {
-                elseCmds.execute();
-                break;
-            }
             indice_cmd++;
+        }
+
+        if (elseCmds != null) {
+            elseCmds.execute();
         }
     }
 

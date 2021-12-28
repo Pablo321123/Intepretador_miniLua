@@ -24,7 +24,8 @@ public class GenericForCommand extends Command {
 
     @Override
     public void execute() {
-       // Value<?> v = var.expr();
+       
+      System.out.println("x");
         
     }
 }
