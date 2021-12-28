@@ -1,28 +1,50 @@
-a = tonumber(read())
-b = 0
+
 ops = { ["+"] = "add", ["-"] = "sub", ["*"] = "mul", ["/"] = "div" }
 
-if a > 10 then
-print("maior que 10")
-
-elseif a < 10 then
-    print("menor que 10")
-
-    stats = {[0] = 20, [1] = 60, [2] = 30}
-    for symbol, op in ops do
-        stats[1] = 40
-        print(stats[1])
-        print(ops["/"])
-    end 
-else
-    for i=0, 10 do
-
-        if b == 5 then
-            print("Primeira metade >:)")
-        else
-        print(b)
-    end
-    b = b + 1
-
-    end
+stats = {}
+for symbol, op in ops do
+ stats[op] = 0
 end
+
+exp = {}
+
+print("Entre com uma expressao:")
+repeat
+ v = read(" Proximo elemento: ")
+ if v ~= "" then
+    exp[#exp+1] = v
+ end
+until v == ""
+
+-- Calculo passo a passo da expressao dada.
+print("Operacoes:")
+res = exp[1]
+for i=2,#exp-1,2 do
+ op = ops[exp[i]]
+ next = tonumber(exp[i+1]) or 0
+ if op then
+ if op == "add" then
+ tmp = res + next
+ elseif op == "sub" then
+ tmp = res - next
+ elseif op == "mul" then
+ tmp = res * next
+ elseif op == "div" then
+ tmp = res / next
+ end 
+
+ print(" " .. op .. "(" .. res .. ", " .. next .. "): " .. tmp)
+ res = tmp
+ stats[op] = stats[op] + 1
+ else
+ print(" ???(" .. res .. ", " .. next .. "): erro")
+ res = 0
+ end
+end
+
+print()
+print("Estatisticas:")
+print(" " .. stats.add .. (stats.add == 1 and " adicao" or " adicoes"))
+print(" " .. stats.sub .. (stats.sub == 1 and " substracao" or " subtracoes"))
+print(" " .. stats.mul .. (stats.mul == 1 and " multiplicacao" or " multiplicacoes"))
+print(" " .. stats.div .. (stats.div == 1 and " divisao" or " divisoes")) 

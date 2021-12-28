@@ -35,9 +35,11 @@ public class GenericForCommand extends Command {
 
       for (Object key : table.keySet()) {
         var1.setValue(new StringValue(key.toString()));
-        var2 = var2 != null ? (Variable) table.get(key) : null;
 
-        
+        if (var2 != null) {
+          var2.setValue((Value<?>) table.get(key));
+        }
+        cmds.execute();
       }
     }
 
