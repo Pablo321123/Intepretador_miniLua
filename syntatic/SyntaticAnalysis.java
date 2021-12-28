@@ -129,23 +129,33 @@ public class SyntaticAnalysis {
 
         eat(TokenType.IF);
 
-        Expr expr = procExpr();
+        // Vector<Expr> exprs = new Vector<Expr>();
+        // BlocksCommand exprs = procCode();
+
+        // exprs.add(procExpr());
+
+        ArrayList<Expr> expr = new ArrayList<Expr>();
+        expr.add(procExpr());
 
         eat(TokenType.THEN);
-        Command thenCmds = procCode();
-        ifc = new IfCommand(line, expr, thenCmds);
+        ArrayList<Command> thenCmds = new ArrayList<Command>();
+        Command elsecmd = null;
+        thenCmds.add(procCode());
 
         while (current.type == TokenType.ELSEIF) {
             advance();
-            procExpr();
+            expr.add(procExpr());
             eat(TokenType.THEN);
-            thenCmds = procCode();
+            thenCmds.add(procCode());
         }
 
         if (current.type == TokenType.ELSE) {
             advance();
-            ifc.setElseCommand(procCode());
+            elsecmd = procCode();
         }
+
+        ifc = new IfCommand(line, expr, thenCmds);
+        ifc.setElseCommand(elsecmd);
 
         eat(TokenType.END);
         return ifc;
