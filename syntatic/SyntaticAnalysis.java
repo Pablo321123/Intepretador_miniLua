@@ -13,6 +13,7 @@ import interpreter.command.NumericForCommand;
 import interpreter.command.PrintCommand;
 import interpreter.command.RepeatCommand;
 import interpreter.command.WhileCommand;
+import interpreter.expr.AccessExpr;
 import interpreter.expr.ArithExpr;
 import interpreter.expr.ArithOp;
 import interpreter.expr.ComparativeExpr;
@@ -20,6 +21,8 @@ import interpreter.expr.ComparativeOp;
 import interpreter.expr.ConstExpr;
 import interpreter.expr.Expr;
 import interpreter.expr.SetExpr;
+import interpreter.expr.TableEntry;
+import interpreter.expr.TableExpr;
 import interpreter.expr.UnaryExpr;
 import interpreter.expr.UnaryOp;
 import interpreter.expr.Variable;
@@ -465,18 +468,26 @@ public class SyntaticAnalysis {
     // <lvalue> ::= <name> { '.' <name> | '[' <expr> ']' }
     private SetExpr procLValue() {
         Variable var = procName();
+        int line = lex.getLine();
+        AccessExpr ae = null;
 
         while (current.type == TokenType.DOT || current.type == TokenType.OPEN_BRA) {
             if (current.type == TokenType.DOT) {
                 advance();
-                procName();
+                Variable index = procName();
+                StringValue value = new StringValue(index.getName());
+
+                Expr expr = new ConstExpr(line, value);
+                ae = new AccessExpr(line, var, expr);
+
             } else {
                 advance();
-                procExpr();
+                Expr index = procExpr();
                 eat(TokenType.CLOSE_BRA);
+                ae = new AccessExpr(line, var, index);
             }
+            return ae;
         }
-
         return var;
     }
 
@@ -492,7 +503,7 @@ public class SyntaticAnalysis {
                 || current.type == TokenType.TOSTRING) {
             expr = procFunction();
         } else if (current.type == TokenType.OPEN_CUR) {
-            procTable();
+            expr = procTable();
         } else if (current.type == TokenType.ID) {
             expr = procLValue();
         } else {
@@ -566,30 +577,45 @@ public class SyntaticAnalysis {
     }
 
     // <table> ::= '{' [ <elem> { ',' <elem> } ] '}'
-    private void procTable() {
+    private Expr procTable() {
         eat(TokenType.OPEN_CUR);
-        if (current.type == TokenType.CLOSE_CUR) {
-            eat(TokenType.CLOSE_CUR);
-        } else {
-            procElem();
+        int line = lex.getLine();
+
+        TableExpr tableExpr = new TableExpr(line);
+
+        if (current.type == TokenType.OPEN_BRA || current.type == TokenType.OPEN_PAR || current.type == TokenType.SUB
+                || current.type == TokenType.SIZE || current.type == TokenType.NOT || current.type == TokenType.NUMBER
+                || current.type == TokenType.STRING || current.type == TokenType.FALSE || current.type == TokenType.TRUE
+                || current.type == TokenType.NIL || current.type == TokenType.OPEN_CUR
+                || current.type == TokenType.ID) {
+            TableEntry tbEn = procElem();
+            tableExpr.addEntry(tbEn);
             while (current.type == TokenType.COLON) {
                 advance();
-                procElem();
+                tbEn = procElem();
+                tableExpr.addEntry(tbEn);
             }
-            eat(TokenType.CLOSE_CUR);
         }
 
+        eat(TokenType.CLOSE_CUR);
+
+        return tableExpr;
     }
 
     // <elem> ::= [ '[' <expr> ']' '=' ] <expr>
-    private void procElem() {
+    private TableEntry procElem() {
+
+        TableEntry tbEn = new TableEntry();
+
         if (current.type == TokenType.OPEN_BRA) {
             advance();
-            procExpr();
+            tbEn.key = procExpr();
             eat(TokenType.CLOSE_BRA);
         }
-        eat(TokenType.EQUAL);
-        procExpr();
+        eat(TokenType.ASSIGN);
+        tbEn.value = procExpr();
+
+        return tbEn;
     }
 
     private Variable procName() {

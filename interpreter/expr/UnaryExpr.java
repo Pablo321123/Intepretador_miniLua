@@ -3,6 +3,7 @@ package interpreter.expr;
 import interpreter.value.BooleanValue;
 import interpreter.value.NumberValue;
 import interpreter.value.StringValue;
+import interpreter.value.TableValue;
 import interpreter.value.Value;
 import interpreter.util.Utils;
 import java.util.Scanner;
@@ -33,7 +34,7 @@ public class UnaryExpr extends Expr {
                 ret = negOp(v);
                 break;
             case Size:
-                // ret = sizeOp(v);
+                ret = sizeOp(v);
                 break;
             case Not:
                 ret = notOp(v);
@@ -115,14 +116,21 @@ public class UnaryExpr extends Expr {
         return ret;
     }
 
-    /*
-     * private Value<?> sizeOp(Value<?> v) { Value<?> ret = null; if (v instanceof
-     * StringValue) { StringValue sv = (StringValue) v; String tmp = sv.value();
-     * //ret = new NumberValue(tmp.length()); } else { Utils.abort(super.getLine());
-     * }
-     * 
-     * return ret; }
-     */
+    private Value<?> sizeOp(Value<?> v) {
+        Value<?> ret = null;
+        if (v instanceof StringValue) {
+            StringValue sv = (StringValue) v;
+            String tmp = sv.value();
+            ret = new NumberValue(Double.valueOf(tmp.length()));
+        } else if (v instanceof TableValue) {
+            TableValue tv = (TableValue) v;
+            ret = new NumberValue(Double.valueOf(tv.value().size()));
+        } else {
+            Utils.abort(super.getLine());
+        }
+
+        return ret;
+    }
 
     private Value<?> readOp(Value<?> v) {
         // String tmp = input.nextLine();
