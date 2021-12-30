@@ -5,12 +5,12 @@ import syntatic.SyntaticAnalysis;
 public class mli {
 
     public static void main(String[] args) {
-        /*
-         * if (args.length != 1) { System.out.println("Usage: java mli [miniLua file]");
-         * return; }
-         */
 
-        try (LexicalAnalysis l = new LexicalAnalysis("teste.lua")) {
+         if (args.length != 1) { System.out.println("Usage: java mli [miniLua file]");
+            return; }
+
+
+        try (LexicalAnalysis l = new LexicalAnalysis(args[0])) {
             // O código a seguir é dado para testar o interpretador.
             // TODO: descomentar depois que o analisador léxico estiver OK.
             SyntaticAnalysis s = new SyntaticAnalysis(l);
